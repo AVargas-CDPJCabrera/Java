@@ -1,0 +1,103 @@
+package EjerciciosPOO;
+
+import java.util.Scanner;
+
+import Excepciones.SaldoException;
+
+public class CorteIslandesTarejtas {
+
+    // Constructor que lanza SaldoException
+    public CorteIslandesTarejtas() throws SaldoException {
+        try {
+
+            Scanner leer = new Scanner(System.in);
+
+            // Menú principal
+            System.out.println("Metodo Corte Islandes de Tarjetas de Regalo");
+            System.out.println("----------------------------------------------");
+            System.out.println("1.-Generar Una Nueva Tarjeta (Si genera mas de una , se fusionaran en una sola)");
+            System.out.println("2.-Rellenar Saldo de Tarjeta");
+            System.out.println("3.-Gastar Saldo.");
+            System.out.println("4.-Salir");
+
+            int opcion = leer.nextInt();
+
+            switch (opcion) {
+
+                case 1:
+                    // Generación de una o varias tarjetas
+                    System.out.println("¿Cuantas tarjetas desea genera?");
+                    int numTarjetas = leer.nextInt();
+
+                    if (numTarjetas == 1) {
+                        // Crear una sola tarjeta
+                        TarjetaRegalo tarjeta = new TarjetaRegalo(1500);
+                        System.out.println("Tarjeta generada con exito. Numero de tarjeta: " 
+                            + tarjeta.getNumeroTarjeta() + ", Saldo: " + tarjeta.getSaldo());
+                    }
+
+                    else if (numTarjetas > 1) {
+                        // Crear varias tarjetas y fusionarlas
+                        TarjetaRegalo[] tarjetas = new TarjetaRegalo[numTarjetas];
+
+                        // Generar todas las tarjetas
+                        for (int i = 0; i < numTarjetas; i++) {
+                            tarjetas[i] = new TarjetaRegalo(1500);
+                        }
+
+                        // Fusionar todas en la primera
+                        TarjetaRegalo tarjetaFusionada = tarjetas[0];
+                        for (int i = 1; i < numTarjetas; i++) {
+                            tarjetaFusionada = tarjetaFusionada.fusionar(tarjetas[i]);
+                        }
+
+                        System.out.println("Tarjetas fusionadas con exito.");
+                        System.out.println("Numero de tarjeta: " + tarjetaFusionada.getNumeroTarjeta());
+                        System.out.println("Saldo de la tarjeta: " + tarjetaFusionada.getSaldo());
+                    }
+                    break;
+
+                case 2:
+                    // Rellenar saldo de una tarjeta
+                    TarjetaRegalo tarjeta = new TarjetaRegalo(1500);
+                    System.out.println("Saldo Actual:" + tarjeta.getSaldo());
+                    System.out.println("¿Cuanto saldo desea agregar?");
+                    double saldoAgregar = leer.nextDouble();
+
+                    // Calcular nuevo saldo (sin modificar el objeto original)
+                    double nuevoSaldo = tarjeta.getSaldo() + saldoAgregar;
+                    System.out.println("Nuevo saldo de la tarjeta: " + nuevoSaldo);
+                    break;
+
+                case 3:
+                    // Gastar saldo de una tarjeta
+                    TarjetaRegalo tarjetaGastar = new TarjetaRegalo(1500);
+                    System.out.println("Saldo Actual:" + tarjetaGastar.getSaldo());
+                    System.out.println("¿Cuanto saldo desea gastar?");
+                    double gastar = leer.nextDouble();
+
+                    // Comprobar si hay saldo suficiente
+                    if (gastar > tarjetaGastar.getSaldo()) {
+                        throw new SaldoException("Saldo Insuficiente");
+                    } else {
+                        tarjetaGastar.gastar(gastar);
+                        System.out.println("Gasto realizado con exito. Saldo restante: " + tarjetaGastar.getSaldo());
+                    }
+                    break;
+
+                case 4:
+                    // Salida del programa
+                    System.out.println("Saliendo del programa...");
+                    break;
+
+                default:
+                    // Opción no válida
+                    break;
+            }
+
+        } catch (SaldoException e) {
+            // Captura de excepción personalizada
+            System.out.println(e.getMessage());
+        }
+    }
+}
