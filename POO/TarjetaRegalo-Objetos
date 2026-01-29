@@ -1,0 +1,66 @@
+package EjerciciosPOO;
+
+import Excepciones.SaldoException;
+
+public class TarjetaRegalo {
+
+    // Número único de la tarjeta
+    private int numeroTarjeta;
+
+    // Saldo disponible en la tarjeta
+    double saldoInicial;
+
+    // Constructor: genera un número de tarjeta aleatorio y asigna el saldo inicial
+    public TarjetaRegalo(double saldoInicial) throws SaldoException {
+        this.numeroTarjeta = setNumerotarjeta();
+        this.saldoInicial = saldoInicial;
+    }
+    
+    // Genera un número de tarjeta aleatorio entre 10000 y 99999
+    public int setNumerotarjeta() {
+        int min = 10000;
+        int max = 99999;
+        int ale = (int) (Math.random() * (max - min + 1) + min);
+        return ale;
+    }
+
+    // Devuelve el número de tarjeta
+    public int getNumeroTarjeta() {
+        return numeroTarjeta;
+    }
+
+    // Devuelve el saldo actual de la tarjeta
+    public double getSaldo(){
+        return saldoInicial;
+    }
+
+    // Permite gastar una cantidad del saldo, lanzando excepción si no hay suficiente
+    public void gastar (double cantidad) throws SaldoException {
+
+        double saldoActual = saldoInicial;
+
+        // Comprobación de saldo suficiente
+        if (cantidad > saldoActual) {
+            throw new SaldoException("Saldo Insuficiente");
+        } else {
+            // Se descuenta la cantidad del saldo
+            saldoInicial -= cantidad;
+        }
+    }
+
+    // Fusiona esta tarjeta con otra, creando una nueva con la suma de saldos
+    public TarjetaRegalo fusionar(TarjetaRegalo otraTarjeta) throws SaldoException {
+        
+        // Suma de los saldos de ambas tarjetas
+        double saldoTotal = this.saldoInicial + otraTarjeta.saldoInicial;
+
+        // Nueva tarjeta con el saldo combinado
+        TarjetaRegalo nueva = new TarjetaRegalo(saldoTotal);
+
+        // Las tarjetas originales quedan a 0
+        this.saldoInicial = 0;
+        otraTarjeta.saldoInicial = 0;
+
+        return nueva;
+    }
+}
