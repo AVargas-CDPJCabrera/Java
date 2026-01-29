@@ -1,0 +1,215 @@
+package EjerciciosFicheros;
+
+import java.io.*;
+import java.util.Arrays;
+import java.util.Scanner;
+
+import Excepciones.PasswordException;
+import Excepciones.PositionException;
+
+public class golosinas {
+
+    // Lectores para manejar el archivo de texto
+    private FileReader fr;
+    private BufferedReader br;
+
+    // Constructor principal: inicializa la máquina y gestiona el menú
+    public golosinas() throws IOException {
+        Scanner leer = new Scanner(System.in);
+        final String PASSWORD = "MaquinaExpendedora2017"; // Contraseña para rellenar golosinas
+
+        // Archivo donde se guardan los datos de la máquina
+        File fichero = new File("golosinas.txt");
+        if (!fichero.exists()) {
+            fichero.createNewFile(); // Si no existe, se crea
+        }
+
+        fr = new FileReader(fichero);
+        br = new BufferedReader(fr);
+
+        // Leer tamaño de la matriz (primer valor del archivo)
+        int tamaño = Integer.parseInt(br.readLine().trim());
+
+        // Matrices para almacenar los datos de la máquina
+        String[][] nombre = new String[tamaño][tamaño];
+        double[][] precio = new double[tamaño][tamaño];
+        int[][] existencias = new int[tamaño][tamaño];
+        int[][] existenciasVendidas = new int[tamaño][tamaño];
+
+        // Cargar datos desde el archivo
+        escribedatos(fichero, nombre, precio, existencias);
+
+        boolean continuar = true;
+        while (continuar) {
+            mostrarMenu();
+            String opcion = leer.nextLine();
+
+            switch (opcion) {
+                case "1":
+                    // Pedir una golosina
+                    try {
+                        pedirgolosina(nombre, precio, existencias, existenciasVendidas);
+                    } catch (PositionException e) {
+                        System.out.println(e.getMessage());
+                    }
+                    break;
+
+                case "2":
+                    // Mostrar golosinas disponibles
+                    mostrargolosinas(nombre, precio, existencias);
+                    break;
+
+                case "3":
+                    // Rellenar existencias (requiere contraseña)
+                    try {
+                        rellenarGolosinas(PASSWORD, nombre, existencias);
+                    } catch (PasswordException e) {
+                        System.out.println(e.getMessage());
+                    }
+                    break;
+
+                default:
+                    break;
+            }
+        }
+    }
+
+    // Método para rellenar existencias de una posición concreta
+    private void rellenarGolosinas(String pASSWORD, String[][] nombre, int[][] existencias) throws PasswordException {
+        Scanner leer = new Scanner(System.in);
+        System.out.println("Introduzca la contraseña");
+        String contraseña = leer.nextLine();
+
+        // Validación de contraseña
+        if (!contraseña.equals(pASSWORD)) {
+            throw new PasswordException("Contraseña Incorrecta");
+        }
+
+        System.out.println("Introduce la posicion a rellenar");
+        String pos = leer.nextLine();
+        int fila = Character.getNumericValue(pos.charAt(0));
+        int columna = Character.getNumericValue(pos.charAt(1));
+
+        System.out.println("Introduce la cantidad a añadir");
+        int cantidad = leer.nextInt();
+
+        // Se suman las existencias
+        existencias[fila][columna] += cantidad;
+    }
+
+    // Muestra todas las golosinas disponibles con existencias > 0
+    private void mostrargolosinas(String[][] nombre, double[][] precio, int[][] existencias) {
+        System.out.println("\n---GOLOSINAS DISPONIBLES---");
+        System.out.printf("%-8s%-25s%10s\n", "Codigo", "Nombre", "Precio");
+        System.out.println("-".repeat(45));
+
+        for (int i = 0; i < existencias.length; i++) {
+            for (int j = 0; j < existencias[i].length; j++) {
+                if (existencias[i][j] > 0) {
+                    String codigo = "" + i + j;
+                    System.out.printf("%-8s%-25s%9.2f\n", codigo, nombre[i][j], precio[i][j]);
+                }
+            }
+        }
+    }
+
+    // Permite pedir una golosina, validando posición y existencias
+    private void pedirgolosina(String[][] nombre, double[][] precio, int[][] existencias, int[][] existenciasVendidas)
+            throws PositionException {
+
+        Scanner leer = new Scanner(System.in);
+        System.out.println("\n---Pedir Golosina---");
+        System.out.println("Introduce el Codigo de la Golosina Deseada (Solo Valores Numericos)");
+
+        String codigo = leer.nextLine();
+
+        // Validación de posición
+        validarPosicion(codigo, existencias);
+
+        int fila = Character.getNumericValue(codigo.charAt(0));
+        int columna = Character.getNumericValue(codigo.charAt(1));
+
+        // Dispensar golosina
+        existencias[fila][columna]--;
+        existenciasVendidas[fila][columna]++;
+
+        System.out.println("Has recibido " + nombre[fila][columna]);
+        System.out.printf("Precio: %.2f$\n", precio[fila][columna]);
+        System.out.println("Quedan " + existencias[fila][columna] + " unidades");
+    }
+
+    // Valida que el código introducido sea correcto y que haya existencias
+    private void validarPosicion(String codigo, int[][] existencias) throws PositionException {
+
+        // Debe tener exactamente dos caracteres numéricos
+        if (codigo == null || codigo.length() != 2) {
+            throw new PositionException("Codigo Incorrecto");
+        }
+
+        if (!Character.isDigit(codigo.charAt(0)) || !Character.isDigit(codigo.charAt(1))) {
+            throw new PositionException("Codigo Incorrecto");
+        }
+
+        int fila = Character.getNumericValue(codigo.charAt(0));
+        int columna = Character.getNumericValue(codigo.charAt(1));
+
+        // Comprobar que está dentro de los límites
+        if (fila < 0 || fila >= existencias.length || columna < 0 || columna >= existencias.length) {
+            throw new PositionException("Codigo Incorrecto");
+        }
+
+        // Comprobar existencias
+        if (existencias[fila][columna] <= 0) {
+            throw new PositionException("No quedan Existencias");
+        }
+    }
+
+    // Muestra el menú principal
+    private void mostrarMenu() {
+        System.out.println("\n" + "=".repeat(50));
+        System.out.println("MÁQUINA EXPENDEDORA DE GOLOSINAS");
+        System.out.println("=".repeat(50));
+        System.out.println("1. Pedir golosina");
+        System.out.println("2. Mostrar golosinas");
+        System.out.println("3. Rellenar golosinas");
+        System.out.println("4. Apagar máquina");
+        System.out.println("=".repeat(50));
+        System.out.print("\nSelecciona una opción (1-4): ");
+    }
+
+    // Lee los datos del archivo y los carga en las matrices
+    private void escribedatos(File fichero, String[][] nombre, double[][] precio, int[][] existencias)
+            throws IOException, FileNotFoundException {
+
+        BufferedReader br = new BufferedReader(new FileReader(fichero));
+
+        int numfilas = Integer.parseInt(br.readLine().trim());
+
+        // Leer nombres
+        for (int i = 0; i < numfilas; i++) {
+            String linea = br.readLine();
+            String[] partes = linea.split(",");
+            for (int j = 0; j < partes.length; j++) {
+                nombre[i][j] = partes[j];
+            }
+        }
+
+        // Leer precios
+        for (int i = 0; i < numfilas; i++) {
+            String linea = br.readLine();
+            String[] partes = linea.split(",");
+            for (int j = 0; j < partes.length; j++) {
+                precio[i][j] = Double.parseDouble(partes[j]);
+            }
+        }
+
+        // Leer existencias
+        for (int i = 0; i < numfilas; i++) {
+            String linea = br.readLine();
+            String[] partes = linea.split(",");
+            for (int j = 0; j < partes.length; j++) {
+                existencias[i][j] = Integer.parseInt(partes[j]);
+            }
+        }
+    }
+}
